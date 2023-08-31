@@ -11,24 +11,30 @@ locals {
         {
             "name" = "tbc-mgmt"
             "region" = "us-east-1"
-            "cidr" = "10.0.10.0/24"
+            "cidr" = "10.1.0.0/16"
+            "public-cidr" = "10.1.1.0/24"
+            "private-cidr" = "10.1.2.0/24"
         },
         {
             "name" = "tbc-web"
             "region" = "us-east-1"
-            "cidr" = "10.0.11.0/24"
+            "cidr" = "10.2.0.0/16"
+            "public-cidr" = "10.2.1.0/24"
+            "private-cidr" = "10.2.2.0/24"
         },
         {
             "name" = "tbc-lob"
             "region" = "us-east-1"
-            "cidr" = "10.0.12.0/24"
+            "cidr" = "10.3.0.0/16"
+            "public-cidr" = "10.3.1.0/24"
+            "private-cidr" = "10.3.2.0/24"
         }
     ]
 }
 
 resource "aws_vpc" "vpc" {
     count = length(local.vpcs)
-    cidr_block = "10.0.0.0/16"
+    cidr_block = "${local.vpcs[count.index].cidr}"
     enable_dns_support = "true" #gives you an internal domain name
     enable_dns_hostnames = "true" #gives you an internal host name
     # enable_classiclink = "false" # throws an error on plan
@@ -42,11 +48,22 @@ resource "aws_vpc" "vpc" {
 resource "aws_subnet" "subnet-public" {
     count = length(local.vpcs)
     vpc_id = "${aws_vpc.vpc[count.index].id}"
-    cidr_block = "${local.vpcs[count.index].cidr}"
+    cidr_block = "${local.vpcs[count.index].public-cidr}"
     map_public_ip_on_launch = "true" //it makes this a public subnet
     availability_zone = "${local.vpcs[count.index].region}a"
     tags = {
         Name = "${local.vpcs[count.index].name}-subnet-public"
+    }
+}
+
+resource "aws_subnet" "subnet-private" {
+    count = length(local.vpcs)
+    vpc_id = "${aws_vpc.vpc[count.index].id}"
+    cidr_block = "${local.vpcs[count.index].private-cidr}"
+    map_public_ip_on_launch = "false"
+    availability_zone = "${local.vpcs[count.index].region}a"
+    tags = {
+        Name = "${local.vpcs[count.index].name}-subnet-private"
     }
 }
 
