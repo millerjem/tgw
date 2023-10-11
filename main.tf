@@ -219,63 +219,39 @@ resource "aws_route" "default_route_private_subnet1" {
 }
 
 resource "aws_route" "tgw-route0" {
-    # count = length(local.vpcs)
     route_table_id = aws_route_table.tcb-gateway-rt.id
     destination_cidr_block = "10.2.0.0/16"
     transit_gateway_id = aws_ec2_transit_gateway.tcb-tgw.id
-    depends_on = [
-        aws_ec2_transit_gateway.tcb-tgw
-    ]
 }
 
 resource "aws_route" "tgw-route1" {
-    # count = length(local.vpcs)
     route_table_id = aws_route_table.tcb-gateway-rt.id
     destination_cidr_block = "10.3.0.0/16"
     transit_gateway_id = aws_ec2_transit_gateway.tcb-tgw.id
-    depends_on = [
-        aws_ec2_transit_gateway.tcb-tgw
-    ]
 }
 
 resource "aws_route" "tgw-route2" {
-    # count = length(local.vpcs)
     route_table_id = aws_route_table.tcb-web-rt.id
     destination_cidr_block = "10.1.0.0/16"
     transit_gateway_id = aws_ec2_transit_gateway.tcb-tgw.id
-    depends_on = [
-        aws_ec2_transit_gateway.tcb-tgw
-    ]
 }
 
 resource "aws_route" "tgw-route3" {
-    # count = length(local.vpcs)
     route_table_id = aws_route_table.tcb-web-rt.id
     destination_cidr_block = "10.3.0.0/16"
     transit_gateway_id = aws_ec2_transit_gateway.tcb-tgw.id
-    depends_on = [
-        aws_ec2_transit_gateway.tcb-tgw
-    ]
 }
 
 resource "aws_route" "tgw-route4" {
-    # count = length(local.vpcs)
     route_table_id = aws_route_table.tcb-lob-rt.id
     destination_cidr_block = "10.1.0.0/16"
     transit_gateway_id = aws_ec2_transit_gateway.tcb-tgw.id
-    depends_on = [
-        aws_ec2_transit_gateway.tcb-tgw
-    ]
 }
 
 resource "aws_route" "tgw-route5" {
-    # count = length(local.vpcs)
     route_table_id = aws_route_table.tcb-lob-rt.id
     destination_cidr_block = "10.2.0.0/16"
     transit_gateway_id = aws_ec2_transit_gateway.tcb-tgw.id
-    depends_on = [
-        aws_ec2_transit_gateway.tcb-tgw
-    ]
 }
 
 resource "aws_security_group" "ssh-allowed" {
@@ -311,8 +287,8 @@ resource "aws_security_group" "ssh-allowed" {
 
 resource "aws_ec2_transit_gateway" "tcb-tgw" {
     auto_accept_shared_attachments = "enable"
-    default_route_table_association = "disable"
-    default_route_table_propagation = "disable"
+    default_route_table_association = "enable"
+    default_route_table_propagation = "enable"
     dns_support = "enable"
     vpn_ecmp_support = "enable"
 
@@ -342,6 +318,7 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "tcb-tgw-att-vpc" {
 resource "aws_ec2_transit_gateway_route" "tgw_default_route" {
   destination_cidr_block         = "0.0.0.0/0"
   transit_gateway_attachment_id  = "${aws_ec2_transit_gateway_vpc_attachment.tcb-tgw-att-vpc[0].id}"
+  # transit_gateway_route_table_id = "${aws_ec2_transit_gateway_route_table.association_default_route_table.id}"
   transit_gateway_route_table_id = "${aws_ec2_transit_gateway.tcb-tgw.association_default_route_table_id}"
 }
 
@@ -426,3 +403,14 @@ resource "aws_instance" "ec2_instance-lob" {
   }
 }
 
+output "ec2_ip_mgmt" {
+    value = ["ssh -J centos@${aws_instance.ec2_instance-mgmt.public_ip} centos@${aws_instance.ec2_instance-mgmt.private_ip}"]
+}
+
+output "ec2_ip_web" {
+    value = ["ssh -J centos@${aws_instance.ec2_instance-mgmt.public_ip} centos@${aws_instance.ec2_instance-web.private_ip}"]
+}
+
+output "ec2_ip_lob" {
+    value = ["ssh -J centos@${aws_instance.ec2_instance-mgmt.public_ip} centos@${aws_instance.ec2_instance-lob.private_ip}"]
+}
