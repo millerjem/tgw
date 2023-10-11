@@ -74,11 +74,11 @@ resource "aws_internet_gateway" "tcb-igw" {
 resource "aws_route_table" "tcb-gateway-rt" {
     vpc_id = "${aws_vpc.vpc[0].id}"
     
-    route {
-        //associated subnet can reach everywhere
-        cidr_block = "0.0.0.0/0"
-        gateway_id = "${aws_internet_gateway.tcb-igw.id}"
-    }
+    # route {
+    #     //associated subnet can reach everywhere
+    #     cidr_block = "0.0.0.0/0"
+    #     gateway_id = "${aws_internet_gateway.tcb-igw.id}"
+    # }
     
     tags = {
         Name = "tcb-${local.vpcs[0].name}-rt"
@@ -203,7 +203,6 @@ resource "aws_route_table_association" "tcb-lob-subnet"{
 # }
 
 resource "aws_route" "default_route_private_subnet0" {
-    # count = length(local.vpcs)
     route_table_id = aws_route_table.tcb-web-rt.id
     destination_cidr_block = "0.0.0.0/0"
     transit_gateway_id = aws_ec2_transit_gateway.tcb-tgw.id
@@ -211,11 +210,16 @@ resource "aws_route" "default_route_private_subnet0" {
 }
 
 resource "aws_route" "default_route_private_subnet1" {
-    # count = length(local.vpcs)
     route_table_id = aws_route_table.tcb-lob-rt.id
     destination_cidr_block = "0.0.0.0/0"
     transit_gateway_id = aws_ec2_transit_gateway.tcb-tgw.id
     depends_on = [ aws_ec2_transit_gateway.tcb-tgw ]
+}
+
+resource "aws_route" "tgw-route-all" {
+    route_table_id = aws_route_table.tcb-gateway-rt.id
+    destination_cidr_block = "0.0.0.0/0"
+    gateway_id = "${aws_internet_gateway.tcb-igw.id}"
 }
 
 resource "aws_route" "tgw-route0" {
